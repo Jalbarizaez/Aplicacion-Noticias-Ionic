@@ -1,3 +1,4 @@
+import { DataLocalService } from './../../services/data-local.service';
 import { ActionSheetController } from '@ionic/angular';
 import { Component, Input, OnInit } from '@angular/core';
 import { Article } from '../../interfaces/interfaces';
@@ -14,7 +15,10 @@ export class NoticiaComponent implements OnInit {
 
   @Input() noticia: Article ;
   @Input() i: number;
-  constructor( private iab: InAppBrowser, private actionSheetCtrl: ActionSheetController, private socialSharing: SocialSharing) { }
+  @Input() enFavoritos ;
+
+  constructor( private iab: InAppBrowser, private actionSheetCtrl: ActionSheetController,
+     private socialSharing: SocialSharing, private datalocalService: DataLocalService) { }
 
   ngOnInit() {}
 
@@ -24,6 +28,32 @@ export class NoticiaComponent implements OnInit {
 
   }
   async lanzarMenu(){
+
+    let guardarBorrarBtn;
+    if( this.enFavoritos)
+    {
+      guardarBorrarBtn = {
+        text: 'Borrar Favorito',
+        icon: 'trash',
+        cssClass:'action-dark',
+        handler: () => {
+          console.log('Borrar de Favorito');
+          this.datalocalService.borrarNoticia(this.noticia);
+        }
+      }
+
+    }
+    else{
+      guardarBorrarBtn = {
+        text: 'Favorito',
+        icon: 'star',
+        cssClass:'action-dark',
+        handler: () => {
+          console.log('Favorito');
+          this.datalocalService.guardarNoticia(this.noticia);
+        }
+      }
+    }
 
     const actionSheet = await this.actionSheetCtrl.create({
       buttons: [ {
@@ -36,14 +66,9 @@ export class NoticiaComponent implements OnInit {
             this.noticia.title,this.noticia.source.name,'',this.noticia.url
           );
         }
-      }, {
-        text: 'Favorito',
-        icon: 'star',
-        cssClass:'action-dark',
-        handler: () => {
-          console.log('Favorito');
-        }
-      }, {
+      },
+      guardarBorrarBtn,
+      {
         text: 'Cancelar',
         icon: 'close',
         role: 'cancel',
